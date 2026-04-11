@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router";
-import { Mail, Github } from "lucide-react";
+import { Mail, Globe, Github } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 import { motion, AnimatePresence } from "motion/react";
 import { Navbar } from "../components/Navbar";
@@ -15,6 +15,7 @@ import aboveTheRiftPdf from "../../imports/AboveTheRift-设计文档.pdf?url";
 import aboveTheRiftImage from "../../imports/4月4日.png";
 import aboveTheRiftDocImage from "../../imports/11.png";
 import mixlineImage from "../../imports/Weixin_Image_20260410170911_11599_498.png";
+import minecraftEngineImage from "../../imports/Editor.png";
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -32,7 +33,7 @@ import mixlineImage from "../../imports/Weixin_Image_20260410170911_11599_498.pn
  * 3. That's it!
  */
 
-const CATEGORIES = ["All", "Games", "Design Documents"];
+const CATEGORIES = ["All", "Games", "Design Documents", "Other"];
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -96,6 +97,19 @@ const games = [
     externalLink: "https://zzoonng.itch.io/rolling-rolling",
   },
   {
+    id: "minecraft-engine",
+    title: "Minecraft Engine",
+    role: "Solo Developer",
+    description:
+      "A custom game engine inspired by Minecraft's block-based world generation.",
+    imageUrl: minecraftEngineImage,
+    tags: ["Game Engine", "Rendering", "Physics"],
+    year: "2025",
+    accentColor: "#3B82F6", // Amber/Orange - fun, energetic
+    category: ["Other"], // ← Assign category here
+    externalLink: "https://github.com/zong4/MinecraftEngine",
+  },
+  {
     id: "1000-action",
     title: "1000, Action!",
     role: "Gameplay Designer & Lead Programmer",
@@ -151,8 +165,8 @@ export function Home() {
     selectedFilter === "All"
       ? games
       : games.filter((game) =>
-          game.category.includes(selectedFilter),
-        );
+        game.category.includes(selectedFilter),
+      );
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -482,6 +496,15 @@ export function Home() {
               Bilibili
             </a>
             <a
+              href="https://zong4.github.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm"
+            >
+              <Globe className="w-4 h-4" />
+              Blog
+            </a>
+            <a
               href="https://github.com/zong4"
               target="_blank"
               rel="noopener noreferrer"
@@ -591,8 +614,8 @@ export function Home() {
                     category === "All"
                       ? personalGames.length
                       : personalGames.filter((g) =>
-                          g.category.includes(category),
-                        ).length;
+                        g.category.includes(category),
+                      ).length;
 
                   return (
                     <motion.button
@@ -697,16 +720,16 @@ export function Home() {
           {filteredGames.filter(
             (game) => !game.category.includes("Game Jam"),
           ).length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16"
-            >
-              <p className="text-muted-foreground text-lg">
-                No personal projects found in this category
-              </p>
-            </motion.div>
-          )}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-16"
+              >
+                <p className="text-muted-foreground text-lg">
+                  No personal projects found in this category
+                </p>
+              </motion.div>
+            )}
         </div>
       </section>
 
@@ -772,16 +795,16 @@ export function Home() {
           {games.filter((game) =>
             game.category.includes("Game Jam"),
           ).length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16"
-            >
-              <p className="text-muted-foreground text-lg">
-                No group projects available
-              </p>
-            </motion.div>
-          )}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-16"
+              >
+                <p className="text-muted-foreground text-lg">
+                  No group projects available
+                </p>
+              </motion.div>
+            )}
         </div>
       </section>
 

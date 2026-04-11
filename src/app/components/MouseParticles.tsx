@@ -10,7 +10,6 @@ export function MouseParticles() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
     const setCanvasSize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -18,7 +17,19 @@ export function MouseParticles() {
     setCanvasSize();
     window.addEventListener("resize", setCanvasSize);
 
-    // Particle system
+    // 粒子颜色主题（蓝紫渐变系）
+    const colorPalette = [
+      { r: 139, g: 92, b: 246 },   // 紫
+      { r: 99, g: 102, b: 241 },   // 靛蓝
+      { r: 59, g: 130, b: 246 },   // 蓝
+      { r: 168, g: 85, b: 247 },   // 亮紫
+      { r: 14, g: 165, b: 233 },   // 天蓝
+    ];
+
+    const particleCount = 200;
+    // 速度：像素/秒（与帧率无关）
+    const speedPxPerSec = 50;
+
     const particles: Array<{
       x: number;
       y: number;
@@ -26,84 +37,99 @@ export function MouseParticles() {
       vy: number;
       size: number;
       alpha: number;
+      alphaBase: number;
+      alphaSpeed: number;
+      color: { r: number; g: number; b: number };
     }> = [];
 
-    // Create particles
-    // 粒子数量设置：增加或减少这个数字来改变粒子数量
-    const particleCount = 200;
-    // 粒子移动速度设置：修改这里的乘数来改变速度（当前为 0.8，越大越快）
-    const speedMultiplier = 0.8;
-    // 粒子大小设置：第一个数字控制大小范围，第二个数字控制最小大小
-    // 当前：Math.random() * 1.5 + 0.5 表示大小在 0.5-2.0 像素之间随机
-    const particleSizeRange = 2.0; // 大小范围（越大粒子尺寸差异越大）
-    const particleMinSize = 0.5; // 最小大小（越大粒子越明显）
-
     for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      const alphaBase = Math.random() * 0.35 + 0.15;
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * speedMultiplier,
-        vy: (Math.random() - 0.5) * speedMultiplier,
-        size:
-          Math.random() * particleSizeRange + particleMinSize,
-        alpha: Math.random() * 0.4 + 0.1,
+        vx: Math.cos(angle) * speedPxPerSec,
+        vy: Math.sin(angle) * speedPxPerSec,
+        size: Math.random() * 1.8 + 0.4,
+        alpha: alphaBase,
+        alphaBase,
+        alphaSpeed: Math.random() * 0.8 + 0.3, // 脉冲频率（Hz）
+        color,
       });
     }
 
-    // Animation loop
     let animationId: number;
-    const animate = () => {
+    let lastTime: number | null = null;
+    let elapsed = 0;
+
+    const animate = (timestamp: number) => {
+      // delta time（秒），修复帧率抖动导致速度变化的 bug
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05); // 限制最大 dt 防止跳帧
+      lastTime = timestamp;
+      elapsed += dt;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((particle) => {
-        // Random walk
-        particle.x += particle.vx;
-        particle.y += particle.vy;
+      particles.forEach((p) => {
+        // 用 delta time 推进位置（速度与帧率完全解耦）
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
 
-        // Bounce off edges
-        if (particle.x < 0 || particle.x > canvas.width) {
-          particle.vx *= -1;
-          particle.x = Math.max(
-            0,
-            Math.min(canvas.width, particle.x),
-          );
+        // 边界反弹
+        if (p.x < 0 || p.x > canvas.width) {
+          p.vx *= -1;
+          p.x = Math.max(0, Math.min(canvas.width, p.x));
         }
-        if (particle.y < 0 || particle.y > canvas.height) {
-          particle.vy *= -1;
-          particle.y = Math.max(
-            0,
-            Math.min(canvas.height, particle.y),
-          );
+        if (p.y < 0 || p.y > canvas.height) {
+          p.vy *= -1;
+          p.y = Math.max(0, Math.min(canvas.height, p.y));
         }
 
-        // Draw particle
+        // 脉冲呼吸效果
+        p.alpha = p.alphaBase + Math.sin(elapsed * p.alphaSpeed * Math.PI * 2) * 0.12;
+
+        // 绘制粒子（带光晕）
+        const { r, g, b } = p.color;
+        const glowRadius = p.size * 2.5;
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowRadius);
+        glow.addColorStop(0, `rgba(${r},${g},${b},${p.alpha})`);
+        glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
         ctx.beginPath();
-        ctx.arc(
-          particle.x,
-          particle.y,
-          particle.size,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fillStyle = `rgba(148, 163, 184, ${particle.alpha})`;
+        ctx.arc(p.x, p.y, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+
+        // 实心核心
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(p.alpha * 1.5, 1)})`;
         ctx.fill();
       });
 
-      // Draw connections between nearby particles
+      // 连线（颜色混合自两端粒子）
       const connectionDistance = 120;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < connectionDistance) {
+          if (dist < connectionDistance) {
+            const opacity = 0.18 * (1 - dist / connectionDistance);
+            const ci = particles[i].color;
+            const cj = particles[j].color;
+            // 混合两端颜色
+            const r = Math.round((ci.r + cj.r) / 2);
+            const g = Math.round((ci.g + cj.g) / 2);
+            const b = Math.round((ci.b + cj.b) / 2);
+
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            const opacity =
-              0.15 * (1 - distance / connectionDistance);
-            ctx.strokeStyle = `rgba(148, 163, 184, ${opacity})`;
+            ctx.strokeStyle = `rgba(${r},${g},${b},${opacity})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -113,9 +139,8 @@ export function MouseParticles() {
       animationId = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationId = requestAnimationFrame(animate);
 
-    // Cleanup
     return () => {
       window.removeEventListener("resize", setCanvasSize);
       cancelAnimationFrame(animationId);
@@ -126,7 +151,7 @@ export function MouseParticles() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 -z-10 pointer-events-none"
-      style={{ opacity: 0.8 }}
+      style={{ opacity: 0.85 }}
     />
   );
 }
