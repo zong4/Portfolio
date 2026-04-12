@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { WifiOff } from "lucide-react";
+import { Clock, ExternalLink, WifiOff } from "lucide-react";
 
 interface SteamGame {
   appId: string;
@@ -11,6 +11,7 @@ interface SteamGame {
   storeUrl: string;
 }
 
+// 获取不到数据时的预设数据
 const FALLBACK_GAMES: SteamGame[] = [
   {
     appId: "2358720",
@@ -62,32 +63,31 @@ const FALLBACK_GAMES: SteamGame[] = [
   },
 ];
 
+// Vercel API 地址，部署后替换成你的地址
 const STEAM_API_URL = "https://project-ofjel.vercel.app/api/steam";
-
-// 12列 × 8行的 mosaic 布局定义
-// col/row 从1开始，colSpan/rowSpan 为跨越的格数
-// gameIndex 对应游戏数组下标（按游戏时长从大到小排序后的顺序）
-const MOSAIC_LAYOUT = [
-  // 第一行：大块主角 + 两个中块
-  { col: 1, row: 1, colSpan: 5, rowSpan: 4, gameIndex: 0 }, // 最多时长 → 最大
-  { col: 6, row: 1, colSpan: 3, rowSpan: 2, gameIndex: 2 },
-  { col: 9, row: 1, colSpan: 4, rowSpan: 3, gameIndex: 1 },
-  // 中间填充
-  { col: 6, row: 3, colSpan: 3, rowSpan: 2, gameIndex: 4 },
-  { col: 9, row: 4, colSpan: 2, rowSpan: 2, gameIndex: 3 },
-  { col: 11, row: 4, colSpan: 2, rowSpan: 2, gameIndex: 5 },
-  // 下半部分
-  { col: 1, row: 5, colSpan: 3, rowSpan: 4, gameIndex: 2 },
-  { col: 4, row: 5, colSpan: 2, rowSpan: 2, gameIndex: 5 },
-  { col: 6, row: 5, colSpan: 3, rowSpan: 3, gameIndex: 0 },
-  { col: 9, row: 6, colSpan: 4, rowSpan: 3, gameIndex: 1 },
-  { col: 4, row: 7, colSpan: 2, rowSpan: 2, gameIndex: 3 },
-  { col: 6, row: 8, colSpan: 3, rowSpan: 1, gameIndex: 4 },
-];
 
 interface SteamGamesProps {
   profileUrl?: string;
 }
+
+const getCardStyle = (index: number) => {
+  const rotations = [-3.5, 2.1, -1.8, 3.2, -2.7, 1.5, -0.8, 2.9, -3.1, 1.2];
+  const offsetsX = [4, -6, 8, -3, 5, -7, 2, -5, 6, -4];
+  const offsetsY = [-5, 3, -2, 6, -4, 2, -6, 4, -3, 5];
+
+  return {
+    rotate: rotations[index % rotations.length],
+    tx: offsetsX[index % offsetsX.length],
+    ty: offsetsY[index % offsetsY.length],
+  };
+};
+
+const getSizeMultiplier = (playtimeHours: number): number => {
+  if (playtimeHours >= 180) return 1.4;
+  if (playtimeHours >= 120) return 1.2;
+  if (playtimeHours >= 80) return 1.05;
+  return 1.0;
+};
 
 export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng/" }: SteamGamesProps) {
   const [games, setGames] = React.useState<SteamGame[]>([]);
@@ -99,28 +99,30 @@ export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng
       try {
         const response = await fetch(STEAM_API_URL);
         if (!response.ok) throw new Error("API error");
+
         const data: SteamGame[] = await response.json();
+
         if (!data || data.length === 0) throw new Error("No data");
+
         setGames(data);
         setUsingFallback(false);
       } catch {
+        // 获取失败，使用预设数据
         setGames(FALLBACK_GAMES);
         setUsingFallback(true);
       } finally {
         setLoading(false);
       }
     };
+
     fetchGames();
   }, []);
 
-  // 按游戏时长从大到小排序，让时长最长的游戏占据最大格子
-  const sortedGames = React.useMemo(
-    () => [...games].sort((a, b) => b.playtimeHours - a.playtimeHours),
-    [games]
-  );
-
   return (
-    <section id="gaming" className="py-10 px-4 relative overflow-hidden">
+    <section id="gaming" className="py-10 px-4 relative overflow-hidden pt-16">
+      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-transparent to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-transparent via-transparent to-transparent pointer-events-none" />
+
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -148,7 +150,7 @@ export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng
           </p>
         </motion.div>
 
-        {/* Loading */}
+        {/* Loading 状态 */}
         {loading && (
           <div className="flex justify-center items-center py-20">
             <div className="flex gap-3">
@@ -163,37 +165,79 @@ export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng
           </div>
         )}
 
-        {/* Mosaic Photo Wall */}
-        {!loading && sortedGames.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(12, 1fr)",
-              gridTemplateRows: "repeat(8, 52px)",
-              gap: "4px",
-              width: "100%",
-            }}
-          >
-            {MOSAIC_LAYOUT.map((cell, idx) => {
-              const game = sortedGames[cell.gameIndex % sortedGames.length];
-              if (!game) return null;
+        {/* Photo Wall */}
+        {!loading && (
+          <div className="flex flex-wrap justify-center gap-6 py-8">
+            {games.map((game, index) => {
+              const { rotate, tx, ty } = getCardStyle(index);
+              const sizeMultiplier = getSizeMultiplier(game.playtimeHours);
+              const cardWidth = Math.round(200 * sizeMultiplier);
+              const cardHeight = Math.round(130 * sizeMultiplier);
+
               return (
-                <MosaicCell
-                  key={idx}
-                  game={game}
-                  col={cell.col}
-                  row={cell.row}
-                  colSpan={cell.colSpan}
-                  rowSpan={cell.rowSpan}
-                  animDelay={idx * 0.05}
-                />
+                <motion.div
+                  key={game.appId}
+                  initial={{ opacity: 0, scale: 0.8, rotate: rotate * 2 }}
+                  whileInView={{ opacity: 1, scale: 1, rotate }}
+                  whileHover={{
+                    scale: 1.08,
+                    rotate: 0,
+                    zIndex: 20,
+                    transition: { duration: 0.2 },
+                  }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                  style={{
+                    transform: `translate(${tx}px, ${ty}px) rotate(${rotate}deg)`,
+                    zIndex: index % 3 === 0 ? 10 : index % 3 === 1 ? 5 : 1,
+                    width: cardWidth,
+                  }}
+                  className="relative cursor-pointer"
+                >
+                  <a
+                    href={game.storeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block"
+                    style={{ width: cardWidth }}
+                  >
+                    <div
+                      className="bg-white dark:bg-slate-800 rounded-sm"
+                      style={{
+                        padding: "8px 8px 32px 8px",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      <div
+                        className="overflow-hidden bg-slate-900 relative"
+                        style={{ width: "100%", height: cardHeight }}
+                      >
+                        <img
+                          src={game.imageUrl}
+                          alt={game.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
+                          <Clock className="w-6 h-6 text-white mb-1" />
+                          <p className="text-white text-sm font-bold">{game.playtime}</p>
+                          <ExternalLink className="w-4 h-4 text-slate-300 mt-2" />
+                        </div>
+                      </div>
+                      <div className="pt-2 pb-1 text-center">
+                        <p className="text-slate-700 dark:text-slate-300 text-xs font-medium leading-tight line-clamp-1">
+                          {game.name}
+                        </p>
+                        <p className="text-slate-400 dark:text-slate-500 text-xs mt-0.5">
+                          {game.playtime}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </motion.div>
               );
             })}
-          </motion.div>
+          </div>
         )}
 
         {/* Steam Profile Link */}
@@ -218,96 +262,5 @@ export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng
         </motion.div>
       </div>
     </section>
-  );
-}
-
-// ── 单个 Mosaic 格子 ──────────────────────────────────────────
-
-interface MosaicCellProps {
-  game: SteamGame;
-  col: number;
-  row: number;
-  colSpan: number;
-  rowSpan: number;
-  animDelay: number;
-}
-
-function MosaicCell({ game, col, row, colSpan, rowSpan, animDelay }: MosaicCellProps) {
-  const [hovered, setHovered] = React.useState(false);
-
-  return (
-    <motion.a
-      href={game.storeUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      initial={{ opacity: 0, scale: 0.96 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: animDelay }}
-      style={{
-        gridColumn: `${col} / span ${colSpan}`,
-        gridRow: `${row} / span ${rowSpan}`,
-        position: "relative",
-        overflow: "hidden",
-        display: "block",
-        cursor: "pointer",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* 游戏封面图 */}
-      <img
-        src={game.imageUrl}
-        alt={game.name}
-        loading="lazy"
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-          transition: "transform 0.4s ease",
-          transform: hovered ? "scale(1.07)" : "scale(1)",
-        }}
-      />
-
-      {/* Hover 遮罩 */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.55)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "4px",
-          opacity: hovered ? 1 : 0,
-          transition: "opacity 0.3s ease",
-          padding: "8px",
-        }}
-      >
-        <p
-          style={{
-            color: "#fff",
-            fontSize: colSpan >= 4 ? "13px" : "11px",
-            fontWeight: 500,
-            textAlign: "center",
-            lineHeight: 1.3,
-            margin: 0,
-          }}
-        >
-          {game.name}
-        </p>
-        <p
-          style={{
-            color: "rgba(255,255,255,0.7)",
-            fontSize: "11px",
-            margin: 0,
-          }}
-        >
-          {game.playtime}
-        </p>
-      </div>
-    </motion.a>
   );
 }

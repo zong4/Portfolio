@@ -4,6 +4,10 @@
         "api/steam.js": {
             "memory": 128,
             "maxDuration": 10
+        },
+        "api/bilibili.js": {
+            "memory": 128,
+            "maxDuration": 10
         }
     }
 }
