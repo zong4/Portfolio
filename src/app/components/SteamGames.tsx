@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { Clock, ExternalLink, WifiOff } from "lucide-react";
 
 interface SteamGame {
@@ -9,9 +9,9 @@ interface SteamGame {
   playtimeHours: number;
   imageUrl: string;
   storeUrl: string;
+  tags: string[];
 }
 
-// 获取不到数据时的预设数据
 const FALLBACK_GAMES: SteamGame[] = [
   {
     appId: "2358720",
@@ -20,6 +20,7 @@ const FALLBACK_GAMES: SteamGame[] = [
     playtimeHours: 100,
     imageUrl: "https://cdn.akamai.steamstatic.com/steam/apps/2358720/header.jpg",
     storeUrl: "https://store.steampowered.com/app/2358720/",
+    tags: ["Action", "RPG", "Souls-like", "Singleplayer"],
   },
   {
     appId: "2138330",
@@ -28,6 +29,7 @@ const FALLBACK_GAMES: SteamGame[] = [
     playtimeHours: 200,
     imageUrl: "https://cdn.akamai.steamstatic.com/steam/apps/2138330/header.jpg",
     storeUrl: "https://store.steampowered.com/app/2138330/",
+    tags: ["Action", "RPG", "Souls-like", "Open World", "Singleplayer"],
   },
   {
     appId: "646570",
@@ -36,6 +38,7 @@ const FALLBACK_GAMES: SteamGame[] = [
     playtimeHours: 150,
     imageUrl: "https://cdn.akamai.steamstatic.com/steam/apps/646570/header.jpg",
     storeUrl: "https://store.steampowered.com/app/646570/",
+    tags: ["Roguelite", "Card Game", "Strategy", "Singleplayer"],
   },
   {
     appId: "1517290",
@@ -44,6 +47,7 @@ const FALLBACK_GAMES: SteamGame[] = [
     playtimeHours: 80,
     imageUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1517290/header.jpg",
     storeUrl: "https://store.steampowered.com/app/1517290/",
+    tags: ["Shooter", "Multiplayer", "Action", "FPS"],
   },
   {
     appId: "1174180",
@@ -52,6 +56,7 @@ const FALLBACK_GAMES: SteamGame[] = [
     playtimeHours: 120,
     imageUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg",
     storeUrl: "https://store.steampowered.com/app/1174180/",
+    tags: ["Open World", "Action", "RPG", "Story Rich", "Singleplayer"],
   },
   {
     appId: "1086940",
@@ -60,21 +65,23 @@ const FALLBACK_GAMES: SteamGame[] = [
     playtimeHours: 90,
     imageUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1086940/header.jpg",
     storeUrl: "https://store.steampowered.com/app/1086940/",
+    tags: ["RPG", "Turn-Based", "Story Rich", "Co-op", "Singleplayer"],
   },
 ];
 
-// Vercel API 地址，部署后替换成你的地址
-const STEAM_API_URL = "https://project-ofjel.vercel.app/api/steam";
+// const STEAM_API_BASE_URL = "https://project-ofjel.vercel.app/api/steam";
 
 interface SteamGamesProps {
   profileUrl?: string;
 }
 
+const FILTER_TAGS = ["All", "Action", "RPG", "Strategy", "Puzzle", "Platformer", "Adventure", "Indie"] as const;
+type FilterTag = typeof FILTER_TAGS[number];
+
 const getCardStyle = (index: number) => {
   const rotations = [-3.5, 2.1, -1.8, 3.2, -2.7, 1.5, -0.8, 2.9, -3.1, 1.2];
   const offsetsX = [4, -6, 8, -3, 5, -7, 2, -5, 6, -4];
   const offsetsY = [-5, 3, -2, 6, -4, 2, -6, 4, -3, 5];
-
   return {
     rotate: rotations[index % rotations.length],
     tx: offsetsX[index % offsetsX.length],
@@ -89,47 +96,62 @@ const getSizeMultiplier = (playtimeHours: number): number => {
   return 1.0;
 };
 
-export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng/" }: SteamGamesProps) {
+/** 从所有游戏里聚合出唯一 tag 列表，按出现频率排序 */
+const collectAllTags = (games: SteamGame[]): string[] => {
+  const freq: Record<string, number> = {};
+  for (const game of games) {
+    for (const tag of game.tags ?? []) {
+      freq[tag] = (freq[tag] ?? 0) + 1;
+    }
+  }
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => tag);
+};
+
+export function SteamGames({
+  profileUrl = "https://steamcommunity.com/id/zzoonng/",
+}: SteamGamesProps) {
   const [games, setGames] = React.useState<SteamGame[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [usingFallback, setUsingFallback] = React.useState(false);
+  const [activeTag, setActiveTag] = React.useState<FilterTag>("All");
 
   React.useEffect(() => {
     const fetchGames = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(STEAM_API_URL);
+        const response = await fetch(`${STEAM_API_BASE_URL}?count=50`);
         if (!response.ok) throw new Error("API error");
-
         const data: SteamGame[] = await response.json();
-
         if (!data || data.length === 0) throw new Error("No data");
-
         setGames(data);
         setUsingFallback(false);
       } catch {
-        // 获取失败，使用预设数据
         setGames(FALLBACK_GAMES);
         setUsingFallback(true);
       } finally {
         setLoading(false);
       }
     };
-
     fetchGames();
   }, []);
 
+  const filteredGames = React.useMemo(() => {
+    if (activeTag === "All") return games;
+    return games.filter((game) => game.tags?.includes(activeTag));
+  }, [games, activeTag]);
+
   return (
     <section id="gaming" className="py-10 px-4 relative overflow-hidden pt-16">
-      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-transparent to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-transparent via-transparent to-transparent pointer-events-none" />
-
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* 标题区 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="mb-8"
         >
           <div className="flex items-center justify-center gap-3 mb-2">
             <h2>Gaming Gallery</h2>
@@ -148,7 +170,47 @@ export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng
           <p className="text-muted-foreground text-center">
             Games that inspire my design philosophy
           </p>
+
+          {/* 离线提示 */}
+          {usingFallback && !loading && (
+            <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground/60">
+              <WifiOff className="w-3 h-3" />
+              <span>Showing curated list (offline)</span>
+            </div>
+          )}
         </motion.div>
+
+        {/* Tag 筛选 Tab */}
+        {!loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-6 flex flex-wrap justify-center gap-2"
+          >
+            {FILTER_TAGS.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(tag)}
+                className={[
+                  "px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200",
+                  activeTag === tag
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-transparent text-muted-foreground border-border hover:border-primary/40 hover:text-foreground",
+                ].join(" ")}
+              >
+                {tag}
+              </button>
+            ))}
+          </motion.div>
+        )}
+
+        {/* 无结果提示 */}
+        {!loading && filteredGames.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground mb-4">
+            No games found under "{activeTag}".
+          </p>
+        )}
 
         {/* Loading 状态 */}
         {loading && (
@@ -168,75 +230,98 @@ export function SteamGames({ profileUrl = "https://steamcommunity.com/id/zzoonng
         {/* Photo Wall */}
         {!loading && (
           <div className="flex flex-wrap justify-center gap-6 py-8">
-            {games.map((game, index) => {
-              const { rotate, tx, ty } = getCardStyle(index);
-              const sizeMultiplier = getSizeMultiplier(game.playtimeHours);
-              const cardWidth = Math.round(200 * sizeMultiplier);
-              const cardHeight = Math.round(130 * sizeMultiplier);
+            <AnimatePresence mode="popLayout">
+              {filteredGames.map((game, index) => {
+                const { rotate, tx, ty } = getCardStyle(index);
+                const sizeMultiplier = getSizeMultiplier(game.playtimeHours);
+                const cardWidth = Math.round(200 * sizeMultiplier);
+                const cardHeight = Math.round(130 * sizeMultiplier);
 
-              return (
-                <motion.div
-                  key={game.appId}
-                  initial={{ opacity: 0, scale: 0.8, rotate: rotate * 2 }}
-                  whileInView={{ opacity: 1, scale: 1, rotate }}
-                  whileHover={{
-                    scale: 1.08,
-                    rotate: 0,
-                    zIndex: 20,
-                    transition: { duration: 0.2 },
-                  }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.08 }}
-                  style={{
-                    transform: `translate(${tx}px, ${ty}px) rotate(${rotate}deg)`,
-                    zIndex: index % 3 === 0 ? 10 : index % 3 === 1 ? 5 : 1,
-                    width: cardWidth,
-                  }}
-                  className="relative cursor-pointer"
-                >
-                  <a
-                    href={game.storeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group block"
-                    style={{ width: cardWidth }}
+                return (
+                  <motion.div
+                    key={game.appId}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8, rotate: rotate * 2 }}
+                    animate={{ opacity: 1, scale: 1, rotate }}
+                    exit={{ opacity: 0, scale: 0.7 }}
+                    whileHover={{
+                      scale: 1.08,
+                      rotate: 0,
+                      zIndex: 20,
+                      transition: { duration: 0.2 },
+                    }}
+                    transition={{ duration: 0.4, delay: index * 0.06 }}
+                    style={{
+                      transform: `translate(${tx}px, ${ty}px) rotate(${rotate}deg)`,
+                      zIndex: index % 3 === 0 ? 10 : index % 3 === 1 ? 5 : 1,
+                      width: cardWidth,
+                    }}
+                    className="relative cursor-pointer"
                   >
-                    <div
-                      className="bg-white dark:bg-slate-800 rounded-sm"
-                      style={{
-                        padding: "8px 8px 32px 8px",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2)",
-                      }}
+                    <a
+                      href={game.storeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group block"
+                      style={{ width: cardWidth }}
                     >
                       <div
-                        className="overflow-hidden bg-slate-900 relative"
-                        style={{ width: "100%", height: cardHeight }}
+                        className="bg-white dark:bg-slate-800 rounded-sm"
+                        style={{
+                          padding: "8px 8px 32px 8px",
+                          boxShadow:
+                            "0 4px 20px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2)",
+                        }}
                       >
-                        <img
-                          src={game.imageUrl}
-                          alt={game.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
-                          <Clock className="w-6 h-6 text-white mb-1" />
-                          <p className="text-white text-sm font-bold">{game.playtime}</p>
-                          <ExternalLink className="w-4 h-4 text-slate-300 mt-2" />
+                        <div
+                          className="overflow-hidden bg-slate-900 relative"
+                          style={{ width: "100%", height: cardHeight }}
+                        >
+                          <img
+                            src={game.imageUrl}
+                            alt={game.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
+                            <Clock className="w-6 h-6 text-white mb-1" />
+                            <p className="text-white text-sm font-bold">{game.playtime}</p>
+                            <ExternalLink className="w-4 h-4 text-slate-300 mt-2" />
+                          </div>
+                        </div>
+
+                        <div className="pt-2 pb-1 text-center">
+                          <p className="text-slate-700 dark:text-slate-300 text-xs font-medium leading-tight line-clamp-1">
+                            {game.name}
+                          </p>
+                          <p className="text-slate-400 dark:text-slate-500 text-xs mt-0.5">
+                            {game.playtime}
+                          </p>
+                          {/* Tag 小标签 */}
+                          {game.tags && game.tags.length > 0 && (
+                            <div className="flex flex-wrap justify-center gap-1 mt-1.5">
+                              {game.tags.slice(0, 2).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className={[
+                                    "text-[9px] px-1.5 py-0.5 rounded-full leading-none",
+                                    selectedTags.has(tag)
+                                      ? "bg-primary/20 text-primary font-semibold"
+                                      : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400",
+                                  ].join(" ")}
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="pt-2 pb-1 text-center">
-                        <p className="text-slate-700 dark:text-slate-300 text-xs font-medium leading-tight line-clamp-1">
-                          {game.name}
-                        </p>
-                        <p className="text-slate-400 dark:text-slate-500 text-xs mt-0.5">
-                          {game.playtime}
-                        </p>
-                      </div>
-                    </div>
-                  </a>
-                </motion.div>
-              );
-            })}
+                    </a>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Play, Heart, Eye, Users, Loader2 } from "lucide-react";
+import avatarImg from "../../imports/Head.JPG";
 
 // ✅ 只需填 bvid，其他数据自动获取
 const VIDEO_BVIDS = [
@@ -143,7 +144,11 @@ export function BilibiliCard({
                     <div className="flex-shrink-0">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#00a1d6] to-[#00b5e5] p-1 group-hover:scale-110 transition-transform duration-300">
                         <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
-                          <BilibiliIcon className="w-8 h-8 text-[#00a1d6]" />
+                          <img
+                            src={avatarImg}
+                            alt={username}
+                            className="w-full h-full rounded-full object-cover"
+                          />
                         </div>
                       </div>
                     </div>
