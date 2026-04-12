@@ -1,4 +1,5 @@
 {
+    "outputDirectory": "dist",
     "functions": {
         "api/steam.js": {
             "memory": 128,
