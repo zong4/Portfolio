@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router";
-import { Mail, Globe, Github } from "lucide-react";
+import { Mail, Globe } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 import { motion, AnimatePresence } from "motion/react";
 import { Navbar } from "../components/Navbar";
@@ -16,6 +16,8 @@ import aboveTheRiftImage from "../../imports/4月4日.png";
 import aboveTheRiftDocImage from "../../imports/11.png";
 import mixlineImage from "../../imports/Weixin_Image_20260410170911_11599_498.png";
 import minecraftEngineImage from "../../imports/Editor.png";
+import { BilibiliCard } from "../components/BilibiliCard";
+import { SteamGames } from "../components/SteamGames";
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -34,6 +36,7 @@ import minecraftEngineImage from "../../imports/Editor.png";
  */
 
 const CATEGORIES = ["All", "Games", "Design Documents", "Other"];
+const GROUP_CATEGORIES = ["All", "Games", "Other"];
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -159,6 +162,8 @@ const games = [
 export function Home() {
   const [selectedFilter, setSelectedFilter] =
     React.useState<string>("Games");
+  const [selectedGroupFilter, setSelectedGroupFilter] =
+    React.useState<string>("All");
 
   // Filter games by category (supports multiple categories per game)
   const filteredGames =
@@ -167,6 +172,12 @@ export function Home() {
       : games.filter((game) =>
         game.category.includes(selectedFilter),
       );
+
+  const filteredGroupGames = games.filter((game) => {
+    if (!game.category.includes("Game Jam")) return false;
+    if (selectedGroupFilter === "All") return true;
+    return game.category.includes(selectedGroupFilter);
+  });
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -463,7 +474,7 @@ export function Home() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8"
           >
-            Gameplay-Driven Development
+            First, I am a player. Then, I am a developer. And above all, a gameplay researcher.
           </motion.p>
 
           {/* Contact Links */}
@@ -505,13 +516,15 @@ export function Home() {
               Blog
             </a>
             <a
-              href="https://github.com/zong4"
+              href="https://steamcommunity.com/id/zzoonng/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm"
             >
-              <Github className="w-4 h-4" />
-              GitHub
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.455 1.012zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.663 0-3.015 1.353-3.015 3.015 0 1.663 1.352 3.015 3.015 3.015 1.663 0 3.015-1.352 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.252 0-2.265-1.014-2.265-2.265z" />
+              </svg>
+              Steam
             </a>
           </motion.div>
         </div>
@@ -599,7 +612,7 @@ export function Home() {
               Personal Projects
             </h2>
             <p className="text-muted-foreground mb-10 text-center">
-              Independent games I've developed as a solo
+              Independent projects I've developed as a solo
               developer
             </p>
 
@@ -751,6 +764,69 @@ export function Home() {
             <p className="text-muted-foreground text-center">
               Game jam collaborations and team-based projects
             </p>
+
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-4 justify-center mt-6">
+              {GROUP_CATEGORIES.map((category) => {
+                const count =
+                  category === "All"
+                    ? games.filter((g) => g.category.includes("Game Jam")).length
+                    : games.filter((g) => g.category.includes("Game Jam") && g.category.includes(category)).length;
+
+                return (
+                  <motion.button
+                    key={category}
+                    onClick={() => setSelectedGroupFilter(category)}
+                    className="px-8 py-3.5 rounded-xl transition-all duration-300 relative overflow-hidden group font-semibold"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      backgroundColor:
+                        selectedGroupFilter === category
+                          ? "rgba(51, 65, 85, 0.95)"
+                          : "rgba(255, 255, 255, 0.7)",
+                      border:
+                        selectedGroupFilter === category
+                          ? "2px solid rgba(51, 65, 85, 1)"
+                          : "2px solid rgba(203, 213, 225, 0.5)",
+                      color:
+                        selectedGroupFilter === category
+                          ? "#ffffff"
+                          : "#475569",
+                      backdropFilter: "blur(16px)",
+                      boxShadow:
+                        selectedGroupFilter === category
+                          ? "0 4px 16px rgba(51, 65, 85, 0.25)"
+                          : "0 2px 8px rgba(0, 0, 0, 0.05)",
+                    }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{
+                        background:
+                          selectedGroupFilter === category
+                            ? "linear-gradient(135deg, rgba(71, 85, 105, 0.2) 0%, rgba(51, 65, 85, 0.2) 100%)"
+                            : "linear-gradient(135deg, rgba(148, 163, 184, 0.1) 0%, rgba(100, 116, 139, 0.1) 100%)",
+                      }}
+                    />
+                    <span className="relative z-10 flex items-center gap-2">
+                      {category}
+                      <span
+                        className="px-2 py-0.5 rounded-full text-xs"
+                        style={{
+                          backgroundColor:
+                            selectedGroupFilter === category
+                              ? "rgba(255, 255, 255, 0.25)"
+                              : "rgba(100, 116, 139, 0.15)",
+                        }}
+                      >
+                        {count}
+                      </span>
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
 
           {/* Group Projects Grid */}
@@ -759,10 +835,7 @@ export function Home() {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             <AnimatePresence mode="popLayout">
-              {games
-                .filter((game) =>
-                  game.category.includes("Game Jam"),
-                )
+              {filteredGroupGames
                 .map((game, index) => (
                   <motion.div
                     key={game.id}
@@ -792,21 +865,30 @@ export function Home() {
           </motion.div>
 
           {/* No results message for group projects */}
-          {games.filter((game) =>
-            game.category.includes("Game Jam"),
-          ).length === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16"
-              >
-                <p className="text-muted-foreground text-lg">
-                  No group projects available
-                </p>
-              </motion.div>
-            )}
+          {filteredGroupGames.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <p className="text-muted-foreground text-lg">
+                No group projects available
+              </p>
+            </motion.div>
+          )}
         </div>
       </section>
+
+      {/* Bilibili Card Section */}
+      <BilibiliCard
+        profileUrl="https://space.bilibili.com/54413027"
+        username="Zong"
+        bio="Game Designer & Programmer"
+        followers="Follow on Bilibili"
+      />
+
+      {/* Steam Games Section */}
+      <SteamGames profileUrl="https://steamcommunity.com/id/zzoonng/" />
 
       <Footer />
     </div>
