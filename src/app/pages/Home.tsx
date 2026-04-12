@@ -12,7 +12,7 @@ import pengWinImage from "../../imports/l5p9vP.png";
 import action1000Image from "../../imports/mfv121.png";
 import rollingRollingImage from "../../imports/Weixin_Image_2026-04-06_153702_169.png";
 import aboveTheRiftPdf from "../../imports/AboveTheRift-设计文档.pdf?url";
-import aboveTheRiftImage from "../../imports/4月4日.png";
+import aboveTheRiftImage from "../../imports/AboveTheRift.png";
 import aboveTheRiftDocImage from "../../imports/11.png";
 import mixlineImage from "../../imports/Split.jpg";
 import minecraftEngineImage from "../../imports/Editor.png";
