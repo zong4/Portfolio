@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Play, Heart, Eye, Users, Loader2 } from "lucide-react";
+import avatarImg from "../../imports/Head.JPG";
 
 // ✅ 只需填 bvid，其他数据自动获取
-const VIDEO_BVIDS = [
-  "BV1TZfbBVEia",
-  "BV1TZfbBVEia",
-  "BV1TZfbBVEia",
+const VIDEOS = [
+  { bvid: "BV1ndbhz7E3M", cover: "https://i0.hdslb.com/bfs/archive/22b38d09ee5ff0eb4de8e1ea7df2d4d96a104f7b.jpg@308w_174h" },  // 留空 = 自动获取
+  { bvid: "BV1BHpjzQEC8", cover: "https://i0.hdslb.com/bfs/archive/4a0d6fdc86f6d4dfa9455dda7c106d3e099b8786.jpg@308w_174h" },  // 手动指定
+  { bvid: "BV1J3WTzaEYb", cover: "https://i2.hdslb.com/bfs/archive/139d1f91ab8f81230da784b123c89d96ca933810.jpg@308w_174h" },
 ];
 
 // 你的 Vercel 代理 API 地址
 // 本地开发时自动用 /api/bilibili（Vite 需配置 proxy，见下方说明）
 // 生产环境部署到 Vercel 后自动可用
-const API_BASE =
-  import.meta.env.VITE_BILIBILI_API_URL || "/api/bilibili";
+const API_BASE = "https://project-ofjel.vercel.app/api/bilibili";
 
 interface VideoData {
   bvid: string;
@@ -65,7 +65,7 @@ export function BilibiliCard({
   totalLikes = "",
 }: BilibiliCardProps) {
   const [videos, setVideos] = useState<(VideoData | null)[]>(
-    VIDEO_BVIDS.map(() => null)
+    VIDEOS.map(() => null)
   );
   const [loading, setLoading] = useState(true);
 
@@ -77,21 +77,13 @@ export function BilibiliCard({
 
       // 并发请求所有视频
       const results = await Promise.all(
-        VIDEO_BVIDS.map(async (bvid, i) => {
+        VIDEOS.map(async ({ bvid, cover }, i) => {
           try {
             const res = await fetch(`${API_BASE}?bvid=${bvid}`);
-            if (!res.ok) throw new Error("fetch failed");
-            return (await res.json()) as VideoData;
+            const data = await res.json();
+            return { ...data, cover: cover || data.cover }; // 手动封面优先
           } catch {
-            // 请求失败时返回占位数据
-            return {
-              bvid,
-              title: "加载失败，请刷新重试",
-              cover: "",
-              views: "--",
-              likes: "--",
-              duration: "--:--",
-            } as VideoData;
+            return { bvid, title: "加载失败", cover: cover || "", views: "--", likes: "--", duration: "--:--" };
           }
         })
       );
@@ -144,7 +136,11 @@ export function BilibiliCard({
                     <div className="flex-shrink-0">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#00a1d6] to-[#00b5e5] p-1 group-hover:scale-110 transition-transform duration-300">
                         <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
-                          <BilibiliIcon className="w-8 h-8 text-[#00a1d6]" />
+                          <img
+                            src={avatarImg}
+                            alt={username}
+                            className="w-full h-full rounded-full object-cover"
+                          />
                         </div>
                       </div>
                     </div>
@@ -184,7 +180,7 @@ export function BilibiliCard({
           {/* Featured Videos */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {loading
-              ? VIDEO_BVIDS.map((bvid) => <VideoSkeleton key={bvid} />)
+              ? VIDEOS.map(({ bvid }) => <VideoSkeleton key={bvid} />)
               : videos.map((video, index) =>
                 video ? (
                   <motion.div
