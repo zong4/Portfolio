@@ -27,7 +27,7 @@ export default async function handler(req, res) {
             .sort((a, b) => b.playtime_forever - a.playtime_forever)
             .slice(0, count);
 
-        // 带超时的单个标签请求，用 Steam Spy API 拿更丰富的 tags
+        // 带超时的单个标签请求，优先用 Steam Spy，没有则 fallback 到 Steam genres
         const fetchTags = async (appid) => {
             try {
                 const controller = new AbortController();
@@ -38,12 +38,29 @@ export default async function handler(req, res) {
                 );
                 clearTimeout(timer);
                 const data = await res.json();
-                // tags 是一个对象 { "tagName": voteCount, ... }，按票数排序取前 8 个
                 const tags = Object.entries(data?.tags ?? {})
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 8)
                     .map(([tag]) => tag);
-                return tags;
+
+                if (tags.length > 0) return tags;
+            } catch {
+                // Steam Spy 失败，继续 fallback
+            }
+
+            // Fallback：Steam 官方 genres
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 3000);
+                const res = await fetch(
+                    `https://store.steampowered.com/api/appdetails?appids=${appid}&filters=genres&l=english`,
+                    { signal: controller.signal }
+                );
+                clearTimeout(timer);
+                const data = await res.json();
+                return (data?.[String(appid)]?.data?.genres ?? [])
+                    .map((g) => g.description)
+                    .slice(0, 6);
             } catch {
                 return [];
             }

@@ -75,7 +75,7 @@ interface SteamGamesProps {
   profileUrl?: string;
 }
 
-const FILTER_TAGS = ["All", "Action", "RPG", "Strategy", "Puzzle", "Platformer", "Adventure", "Indie"] as const;
+const FILTER_TAGS = ["All", "Open World", "Multiplayer", "Strategy", "Platformer", "Puzzle", "Survival"] as const;
 type FilterTag = typeof FILTER_TAGS[number];
 
 const getCardStyle = (index: number) => {

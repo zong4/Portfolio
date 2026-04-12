@@ -5,9 +5,9 @@ import avatarImg from "../../imports/Head.JPG";
 
 // ✅ 只需填 bvid，其他数据自动获取
 const VIDEO_BVIDS = [
-  "BV1ndbhz7E3M",
+  "BV1TZfbBVEia",
   "BV1BHpjzQEC8",
-  "BV1J3WTzaEYb",
+  "BV1ndbhz7E3M",
 ];
 
 // 你的 Vercel 代理 API 地址
