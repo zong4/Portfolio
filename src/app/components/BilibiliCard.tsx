@@ -22,7 +22,7 @@ export function BilibiliCard({
   avatarUrl = "",
 }: BilibiliCardProps) {
   return (
-    <section className="py-10 px-4 relative">
+    <section id="research" className="py-10 px-4 relative">
       {/* Smooth transition overlays */}
       <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-transparent to-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-transparent via-transparent to-transparent pointer-events-none" />
@@ -35,7 +35,7 @@ export function BilibiliCard({
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <h2 className="text-center mb-2">Content Creator</h2>
+          <h2 className="text-center mb-2">Research</h2>
           <p className="text-muted-foreground text-center">
             Follow my game development journey
           </p>

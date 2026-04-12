@@ -85,6 +85,14 @@ export function Navbar() {
               Projects
             </motion.button>
             <motion.button
+              onClick={() => scrollToSection("research")}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Research
+            </motion.button>
+            <motion.button
               onClick={() => scrollToSection("gaming")}
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               whileHover={{ scale: 1.05 }}
