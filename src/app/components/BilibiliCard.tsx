@@ -230,7 +230,7 @@ export function BilibiliCard({
 
                       {/* Info */}
                       <div className="p-3">
-                        <p className="text-white text-sm font-medium line-clamp-2 mb-2 group-hover:text-[#00a1d6] transition-colors leading-snug">
+                        <p className="text-white text-sm font-medium line-clamp-2 mb-2 group-hover:text-[#00a1d6] transition-colors leading-snug h-10 overflow-hidden">
                           {video.title}
                         </p>
                         <div className="flex items-center gap-3 text-slate-500 text-xs">

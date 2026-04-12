@@ -75,7 +75,7 @@ interface SteamGamesProps {
   profileUrl?: string;
 }
 
-const FILTER_TAGS = ["All", "Multiplayer", "Strategy", "Platformer", "Puzzle", "Open World", "Survival"] as const;
+const FILTER_TAGS = ["All", "Multiplayer", "Strategy", "Platformer", "Puzzle", "Adventure", "Horror", "Simulation", "Survival"] as const;
 type FilterTag = typeof FILTER_TAGS[number];
 
 const getCardStyle = (index: number) => {
@@ -282,6 +282,20 @@ export function SteamGames({
                             alt={game.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             loading="lazy"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              const appId = game.appId;
+                              if (img.src.includes("header.jpg")) {
+                                // 第一次失败：换用 capsule 封面
+                                img.src = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/capsule_231x87.jpg`;
+                              } else if (img.src.includes("capsule_231x87")) {
+                                // 第二次失败：换用 library 封面
+                                img.src = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
+                              } else {
+                                // 全部失败：隐藏 img，显示占位背景
+                                img.style.display = "none";
+                              }
+                            }}
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
                             <Clock className="w-6 h-6 text-white mb-1" />
