@@ -14,7 +14,7 @@ import rollingRollingImage from "../../imports/Weixin_Image_2026-04-06_153702_16
 import aboveTheRiftPdf from "../../imports/AboveTheRift-设计文档.pdf?url";
 import aboveTheRiftImage from "../../imports/4月4日.png";
 import aboveTheRiftDocImage from "../../imports/11.png";
-import mixlineImage from "../../imports/Weixin_Image_20260410170911_11599_498.png";
+import mixlineImage from "../../imports/Split.jpg";
 import minecraftEngineImage from "../../imports/Editor.png";
 import { BilibiliCard } from "../components/BilibiliCard";
 import { SteamGames } from "../components/SteamGames";
