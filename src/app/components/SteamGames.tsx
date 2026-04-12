@@ -69,7 +69,7 @@ const FALLBACK_GAMES: SteamGame[] = [
   },
 ];
 
-// const STEAM_API_BASE_URL = "https://project-ofjel.vercel.app/api/steam";
+const STEAM_API_BASE_URL = "https://project-ofjel.vercel.app/api/steam";
 
 interface SteamGamesProps {
   profileUrl?: string;
@@ -305,7 +305,7 @@ export function SteamGames({
                                   key={tag}
                                   className={[
                                     "text-[9px] px-1.5 py-0.5 rounded-full leading-none",
-                                    selectedTags.has(tag)
+                                    activeTag === tag
                                       ? "bg-primary/20 text-primary font-semibold"
                                       : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400",
                                   ].join(" ")}

@@ -27,19 +27,23 @@ export default async function handler(req, res) {
             .sort((a, b) => b.playtime_forever - a.playtime_forever)
             .slice(0, count);
 
-        // 带超时的单个 appdetails 请求，3s 内拿不到就返回空 tags
+        // 带超时的单个标签请求，用 Steam Spy API 拿更丰富的 tags
         const fetchTags = async (appid) => {
             try {
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 3000);
-                const detailRes = await fetch(
-                    `https://store.steampowered.com/api/appdetails?appids=${appid}&filters=genres&l=english`,
+                const res = await fetch(
+                    `https://steamspy.com/api.php?request=appdetails&appid=${appid}`,
                     { signal: controller.signal }
                 );
                 clearTimeout(timer);
-                const detailData = await detailRes.json();
-                const appDetail = detailData?.[String(appid)]?.data;
-                return (appDetail?.genres ?? []).map((g) => g.description).slice(0, 6);
+                const data = await res.json();
+                // tags 是一个对象 { "tagName": voteCount, ... }，按票数排序取前 8 个
+                const tags = Object.entries(data?.tags ?? {})
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 8)
+                    .map(([tag]) => tag);
+                return tags;
             } catch {
                 return [];
             }
