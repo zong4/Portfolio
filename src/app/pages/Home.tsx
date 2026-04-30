@@ -11,11 +11,11 @@ import whoAreYouImage from "../../imports/l0etK1.png";
 import pengWinImage from "../../imports/l5p9vP.png";
 import action1000Image from "../../imports/mfv121.png";
 import rollingRollingImage from "../../imports/Weixin_Image_2026-04-06_153702_169.png";
-import aboveTheRiftPdf from "../../imports/AboveTheRift-设计文档.pdf?url";
 import aboveTheRiftImage from "../../imports/AboveTheRift.png";
 import aboveTheRiftDocImage from "../../imports/11.png";
 import mixlineImage from "../../imports/Split.jpg";
 import minecraftEngineImage from "../../imports/Editor.png";
+import lyraPistolGif from "../../imports/LyraPistol.gif";
 import { BilibiliCard } from "../components/BilibiliCard";
 import { SteamGames } from "../components/SteamGames";
 
@@ -45,6 +45,20 @@ const GROUP_CATEGORIES = ["All", "Games", "Other"];
  */
 const games = [
   {
+    id: "Lyra Recreation",
+    title: "Lyra Recreation",
+    role: "Solo Developer",
+    description:
+      "A recreation of Epic's Lyra sample game, showcasing animation and procedural mesh techniques.",
+    imageUrl: lyraPistolGif,
+    tags: ["Animation", "Procedural Mesh", "Lyra"],
+    year: "2026",
+    accentColor: "#8B5CF6", // Purple - fantasy, mystical
+    category: ["Other"], // ← Assign category here
+    engine: "UE",
+    externalLink: "https://www.yuque.com/u25451250/dnsdxd/qfzutiurz8gmgec6?singleDoc#%20%E3%80%8ALyra%20%E5%A4%8D%E5%88%BB%E3%80%8B",
+  },
+  {
     id: "mixline-design-doc",
     title: "MixLine - Design Document",
     role: "Game Designer",
@@ -56,7 +70,7 @@ const games = [
     accentColor: "#EC4899", // Pink - vibrant, creative
     category: ["Design Documents"], // ← Assign category here
     externalLink:
-      "https://cat-store-144.notion.site/Mix-Line-33ff3ed9856080b8bdc6d130be13904f",
+      "https://www.yuque.com/u25451250/dnsdxd/5aa25de41e3b8c9a5c4a75e1fe81440a?singleDoc#%20%E3%80%8AMix%20Line%E3%80%8B",
   },
   {
     id: "above-the-rift-game",
@@ -83,7 +97,7 @@ const games = [
     year: "2026",
     accentColor: "#6366F1", // Indigo - professional, documentation
     category: ["Design Documents"], // ← Assign category here
-    externalLink: "https://docs.qq.com/doc/DUndqT2JzQ21EeW1G",
+    externalLink: "https://www.yuque.com/u25451250/dnsdxd/pywdu73qgq8zk2zg?singleDoc#%20%E3%80%8AAbove%20the%20Rift%E3%80%8B",
   },
   {
     id: "rolling-rolling",
