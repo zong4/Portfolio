@@ -56,7 +56,7 @@ const games = [
     accentColor: "#8B5CF6", // Purple - fantasy, mystical
     category: ["Other"], // ← Assign category here
     engine: "UE",
-    externalLink: "https://www.yuque.com/u25451250/dnsdxd/qfzutiurz8gmgec6?singleDoc#%20%E3%80%8ALyra%20%E5%A4%8D%E5%88%BB%E3%80%8B",
+    externalLink: "https://zong4.github.io/2026/04/30/Lyra/",
   },
   {
     id: "mixline-design-doc",
